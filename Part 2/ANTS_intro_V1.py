@@ -4,9 +4,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
-from mne import create_info
-from mne.viz import plot_topomap
-from mne.channels import make_standard_montage
 # %%
 # Load the .mat file
 mat = loadmat(os.path.join('..', 'data', 'v1_laminar.mat'))
