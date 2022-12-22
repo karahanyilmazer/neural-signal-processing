@@ -79,11 +79,11 @@ ampl  = 45; % amplitude
 fwhm  = .9;
 
 % Gaussian
-gwin = exp( -(4*log(2*time-ptime.^2) / fwhm^2);
+gwin = ampl * exp( -(4*log(2)*(time-ptime).^2) / fwhm^2);
 
 % empirical FWHM
 gwinN   = gwin./max(gwin);
-midp    = dsearchn(time',0);
+midp    = dsearchn(time',ptime);
 pst5    = midp-1+dsearchn(gwinN(midp:end)',.5);
 pre5    = dsearchn(gwinN(1:midp)',.5);
 empfwhm = time(pst5) - time(pre5);
@@ -102,18 +102,18 @@ xlabel('Time (s)'), ylabel('Amplitude')
 M = 2.4;
 k = 3*pi/4;
 
-meik = ;
+meik = M*exp(1i*k);
 
 figure(4), clf
 subplot(121)
-polar([0 M],[0 k],'r'), hold on
-polar(M,k,'ro')
+polar([0 k],[0 M],'r'), hold on
+polar(k,M,'ro')
 title('Polar plane')
 
 
 subplot(122), hold on
 plot(meik,'ro')
-plot(real(),imag(),'gs')
+plot(real(meik),imag(meik),'gs')
 axis([-1 1 -1 1]*abs(meik))
 axis square
 xlabel('Real'), ylabel('Imag')
