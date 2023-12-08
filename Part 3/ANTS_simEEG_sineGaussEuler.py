@@ -4,17 +4,26 @@
 #      VIDEO: The three important equations (sine, Gaussian, Euler's)
 # Instructor: sincxpress.com
 
-import numpy as np
-import matplotlib.pyplot as plt
+# !%matplotlib qt
+import os
+import sys
 
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Set figure settings
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils import set_fig_dpi, set_style
+
+set_fig_dpi(), set_style()
 # %% SINE WAVES
 
 # Define some variables
-freq  = 2                         # Frequency in Hz
-srate = 1000                      # Sampling rate in Hz
-time  = np.arange(-1, 1, 1/srate) # Time vector in seconds
-amp   = 2
-phase = np.pi/3
+freq = 2  # Frequency in Hz
+srate = 1000  # Sampling rate in Hz
+time = np.arange(-1, 1, 1 / srate)  # Time vector in seconds
+amp = 2
+phase = np.pi / 3
 
 # Create the sine wave
 sine_wave = amp * np.sin(2 * np.pi * time * freq + phase)
@@ -40,30 +49,30 @@ freqs = [3, 10, 5, 15, 35]
 amps = [5, 15, 10, 5, 7]
 
 # Phases... list some random numbers between -pi and pi
-phases = [np.pi/7, np.pi/8, np.pi, np.pi/2, -np.pi/4]
+phases = [np.pi / 7, np.pi / 8, np.pi, np.pi / 2, -np.pi / 4]
 
 # Define time
-np.arange(-1, 1, 1/srate)
+np.arange(-1, 1, 1 / srate)
 
 # Loop through frequencies and create sine waves
 sine_waves = np.zeros((len(freqs), len(time)))
 for i, (amp, freq, phase) in enumerate(zip(amps, freqs, phases)):
-    sine_waves[i, :] = amp * np.sin(2*np.pi*time*freq + phase)
+    sine_waves[i, :] = amp * np.sin(2 * np.pi * time * freq + phase)
 
 # Plot the result
 plt.figure()
-plt.plot(time,sum(sine_waves))
+plt.plot(time, sum(sine_waves))
 plt.title('Sum of Sine Waves')
 plt.xlabel('Time (s)')
 plt.ylabel('Amplitude (arb. units)')
-plt.xlim(min(time)*1.05, max(time)*1.05)
+plt.xlim(min(time) * 1.05, max(time) * 1.05)
 
 # Plot each wave separately
 _, axs = plt.subplots(len(freqs), 1)
 for ax, wave in zip(axs, sine_waves):
     ax.plot(time, wave)
-    ax.set_xlim(min(time)*1.05, max(time)*1.05)
-    ax.set_ylim(-max(amps)*1.05, max(amps)*1.05)
+    ax.set_xlim(min(time) * 1.05, max(time) * 1.05)
+    ax.set_ylim(-max(amps) * 1.05, max(amps) * 1.05)
     if ax != axs[-1]:
         ax.set_xticks([])
 axs[0].set_title('Individual Sine Components')
@@ -72,21 +81,21 @@ axs[-1].set_xlabel('Time (s)')
 # %% GAUSSIAN
 
 # Simulation parameters
-srate     = 1000
-time      = np.arange(-2, 2+1/srate, 1/srate)
-peak_time = 1 
-amp       = 45
-fwhm      = 0.9
+srate = 1000
+time = np.arange(-2, 2 + 1 / srate, 1 / srate)
+peak_time = 1
+amp = 45
+fwhm = 0.9
 
 # Create the Gaussian
-gauss = amp * np.exp(-(4*np.log(2)*(time-peak_time)**2) / fwhm**2)
+gauss = amp * np.exp(-(4 * np.log(2) * (time - peak_time) ** 2) / fwhm**2)
 
 # Empirical FWHM
-gauss_norm = gauss/max(gauss)
-mid_idx    = np.argmin(np.abs(time - peak_time))
-post5      = mid_idx + np.argmin(np.abs(gauss_norm[mid_idx:] - 0.5))
-pre5       = np.argmin(np.abs(gauss_norm[:mid_idx] - 0.5))
-emp_fwhm   = time[post5] - time[pre5]
+gauss_norm = gauss / max(gauss)
+mid_idx = np.argmin(np.abs(time - peak_time))
+post5 = mid_idx + np.argmin(np.abs(gauss_norm[mid_idx:] - 0.5))
+pre5 = np.argmin(np.abs(gauss_norm[:mid_idx] - 0.5))
+emp_fwhm = time[post5] - time[pre5]
 
 plt.figure()
 plt.plot(time, gauss)
@@ -96,12 +105,12 @@ plt.plot([time[post5], time[post5]], [0, gauss[post5]], 'orange', ls='--')
 plt.title(f'Requested FWHM: {fwhm} s, Empirical FWHM: {emp_fwhm} s')
 plt.xlabel('Time (s)')
 plt.ylabel('Amplitude')
-plt.ylim(0, amp*1.05)
+plt.ylim(0, amp * 1.05)
 plt.show()
 
 # %% EULER'S FORMULA
 r = 2.4
-theta = 3*np.pi/4
+theta = 3 * np.pi / 4
 
 comp_val = r * np.exp(1j * theta)
 

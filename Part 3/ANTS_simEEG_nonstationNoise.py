@@ -4,8 +4,18 @@
 #      VIDEO: Non-stationary narrowband activity via filtered noise
 # Instructor: sincxpress.com
 
-import numpy as np
+# !%matplotlib qt
+import os
+import sys
+
 import matplotlib.pyplot as plt
+import numpy as np
+
+# Set figure settings
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils import set_fig_dpi, set_style
+
+set_fig_dpi(), set_style()
 
 # %% SIMULATION DETAILS
 pnts = 4567
@@ -21,8 +31,8 @@ hz = np.linspace(0, srate, pnts)
 # %%
 # Create frequency-domain Gaussian
 s = fwhm * (2 * np.pi - 1) / (4 * np.pi)  # Normalized width
-x = hz - peakfreq                         # Shifted frequencies
-fg = np.exp(-0.5 * (x / s)**2)            # Gaussian
+x = hz - peakfreq  # Shifted frequencies
+fg = np.exp(-0.5 * (x / s) ** 2)  # Gaussian
 
 # Fourier coefficients of random spectrum
 fc = np.random.rand(pnts) * np.exp(1j * 2 * np.pi * np.random.rand(pnts))

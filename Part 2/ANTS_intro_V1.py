@@ -1,9 +1,19 @@
 # %%
-#!%matplotlib qt
+# !%matplotlib qt
 import os
-import numpy as np
+import sys
+
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.io import loadmat
+
+# Set figure settings
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils import get_cmap, set_fig_dpi, set_style
+
+set_fig_dpi(), set_style()
+cmap = get_cmap('parula')
+
 # %%
 # Load the .mat file
 mat = loadmat(os.path.join('..', 'data', 'v1_laminar.mat'))
@@ -30,10 +40,10 @@ fig = plt.figure()
 ax = fig.add_subplot()
 
 # Plot the ERP
-ax.plot(times*1000, erp[ch_idx, :])
+ax.plot(times * 1000, erp[ch_idx, :])
 ax.set_title(f'Channel {ch_idx}')
 ax.set_xlabel('Time (ms)')
-ax.set_ylabel(u'Amplitude (\u03bcA)')
+ax.set_ylabel(u'Amplitude ($\mu A$)')
 ax.set_xlim(tmin, tmax)
 ax.axhline(0, color='gray', ls='--')
 ax.axvline(0, color='gray', ls='--')
@@ -46,7 +56,7 @@ fig = plt.figure()
 ax = fig.add_subplot()
 
 # Plot depth-by-time image of ERP
-ax.contourf(times*1000, np.arange(16)+1, np.squeeze(erp), 40, cmap='jet')
+ax.contourf(times * 1000, np.arange(16) + 1, np.squeeze(erp), 40, cmap=cmap)
 ax.set_xlabel('Time (ms)')
 ax.set_ylabel('Cortical Depth')
 ax.set_xlim(0, tmax)

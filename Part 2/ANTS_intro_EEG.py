@@ -1,12 +1,22 @@
 # %%
-#!%matplotlib qt
+# !%matplotlib qt
 import os
-import numpy as np
+import sys
+
 import matplotlib.pyplot as plt
-from scipy.io import loadmat
+import numpy as np
 from mne import create_info
-from mne.viz import plot_topomap
 from mne.channels import make_standard_montage
+from mne.viz import plot_topomap
+from scipy.io import loadmat
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils import get_cmap, set_fig_dpi, set_style
+
+# Set figure settings
+set_fig_dpi()
+set_style()
+cmap = get_cmap('parula')
 
 # %%
 # Load the .mat file
@@ -50,12 +60,12 @@ info.set_montage(montage)
 tmin, tmax = -400, 1200
 
 # %%
-# Create an empty figure
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
 # Scatter plot the channel positions
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
 ax.scatter(ch_loc_xyz[:, 0], ch_loc_xyz[:, 1], ch_loc_xyz[:, 2], marker='o')
 
+ax.set_title('Sensor Positions')
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.set_zlabel('z')
@@ -71,17 +81,15 @@ ch_to_plot = 'Oz'
 # Get the index of the channel
 ch_idx = ch_names.index(ch_to_plot)
 
-# Create an empty figure
-fig = plt.figure()
-ax = fig.add_subplot()
-
 # Plot the ERP
+_, ax = plt.subplots()
 ax.plot(times, erp[ch_idx, :])
-ax.set_title(f'ERP of channel {ch_to_plot}')
+ax.set_title(f'ERP of Channel {ch_to_plot}')
 ax.set_xlabel('Time (ms)')
-ax.set_ylabel(u'Amplitude (\u03bcA)')
+ax.set_ylabel(u'Amplitude ($\mu A$)')
 ax.set_xlim(tmin, tmax)
 ax.grid()
+plt.show()
 
 # %%
 # Pick the time point to plot the topographical map for
@@ -93,7 +101,9 @@ t_idx = np.argmin(np.abs(times - time_to_plot))
 # Define the lower and upper bound for the colorbar
 vmin, vmax = -8, 8
 
-im, cn = plot_topomap(erp[:, t_idx], info, cmap='jet', vlim=(vmin, vmax))
+# Plot the topographic map
+_, ax = plt.subplots()
+im, _ = plot_topomap(erp[:, t_idx], info, axes=ax, cmap=cmap, vlim=(vmin, vmax))
 plt.colorbar(im)
 plt.title(f'ERP from {time_to_plot} ms')
 plt.show()

@@ -4,11 +4,20 @@
 #      VIDEO: Generating "chirps" (frequency-modulated signals)
 # Instructor: sincxpress.com
 
-import numpy as np
+# !%matplotlib qt
+import os
+import sys
+
 import matplotlib.pyplot as plt
+import numpy as np
+
+# Set figure settings
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils import set_fig_dpi, set_style
+
+set_fig_dpi(), set_style()
 
 # %% SIMULATION DETAILS
-
 pnts = 10000
 srate = 1024
 time = np.arange(pnts) / srate
@@ -60,3 +69,5 @@ ax_dict['chirp'].set_xlabel('Time (s)')
 ax_dict['chirp'].set_ylabel('Amplitude (a.u.)')
 
 plt.show()
+
+# %%
