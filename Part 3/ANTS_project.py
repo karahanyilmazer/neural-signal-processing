@@ -118,10 +118,6 @@ srate = 500  # Hz
 times = np.arange(n_samples) / srate
 sine_freq = 6.75  # Hz
 
-# info = create_info(ch_df['label'].to_list(), srate, 'eeg')
-# montage = make_standard_montage('standard_1020')
-# info.set_montage(montage)
-
 # %% 1) Pure phase-locked sine wave
 
 # Initialize data array
