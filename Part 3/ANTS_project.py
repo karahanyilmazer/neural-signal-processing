@@ -1,10 +1,12 @@
 # %%
 #     COURSE: Solved challenges in neural time series analysis
 #    SECTION: Simulating EEG data
-#      VIDEO: Project 2: dipole-level EEG data
+#      VIDEO: Project 1: Channel-level EEG data
 # Instructor: sincxpress.com
+#       Goal: Simulate time series data that can be used to
+#             test time-series analysis methods
 
-# !%matplotlib qt
+# !%matplotlib inline
 import os
 import sys
 
@@ -109,279 +111,171 @@ def plot_EEG(times, data, ch_idx=0):
     plt.show()
 
 
-# Load the mat file containing EEG, leadfield and channel locations
-mat = loadmat('emptyEEG')
-ch_info = []
-for ch in mat['EEG'][0][0][21][0]:
-    label, theta, radius, x, y, z, sph_theta, sph_phi, sph_radius, _, _, _ = ch
-    ch_info.append(
-        (
-            label[0],
-            theta[0][0],
-            radius[0][0],
-            x[0][0],
-            y[0][0],
-            z[0][0],
-            sph_theta[0][0],
-            sph_phi[0][0],
-            sph_radius[0][0],
-        )
-    )
-
-ch_df = pd.DataFrame(
-    ch_info,
-    columns=[
-        'label',
-        'theta',
-        'radius',
-        'x',
-        'y',
-        'z',
-        'sph_theta',
-        'sph_phi',
-        'sph_radius',
-    ],
-)
-
-n_chs = len(ch_info)
-n_trials = 40
-n_samples = 2000
-srate = 1024
+n_chs = 23
+n_trials = 30
+n_samples = 1500
+srate = 500  # Hz
 times = np.arange(n_samples) / srate
+sine_freq = 6.75  # Hz
 
-gain = mat['lf'][0][0][2]
-grid_loc = mat['lf'][0][0][5]
+# info = create_info(ch_df['label'].to_list(), srate, 'eeg')
+# montage = make_standard_montage('standard_1020')
+# info.set_montage(montage)
 
-info = create_info(ch_df['label'].to_list(), srate, 'eeg')
-montage = make_standard_montage('standard_1020')
-info.set_montage(montage)
+# %% 1) Pure phase-locked sine wave
+
+# Initialize data array
+data = np.zeros((n_trials, n_chs, n_samples))
+
+# Loop over channels and trials
+for ch in range(n_chs):
+    for trial in range(n_trials):
+        data[trial, ch, :] = np.sin(2 * np.pi * sine_freq * times)
+
+
+# Plot an ERP from one channel
+plot_EEG(times, data, ch_idx=9)
+
+# %% 2) Non-phase-locked sine wave
+
+# Initialize data array
+data = np.zeros((n_trials, n_chs, n_samples))
+
+# Loop over channels and trials
+for ch in range(n_chs):
+    for trial in range(n_trials):
+        data[trial, ch, :] = np.sin(
+            2 * np.pi * sine_freq * times + np.random.rand() * 2 * np.pi
+        )
+
+plot_EEG(times, data, ch_idx=9)
+
+# %% 3) Multisine waves
+
+# List of frequencies and corresponding amplitudes
+freqs = [3, 5, 16]
+amps = [2, 4, 5]
+
+# Initialize data array
+data = np.zeros((n_trials, n_chs, n_samples))
+
+# Loop over channels and trials
+for ch in range(n_chs):
+    for trial in range(n_trials):
+        for freq, amp in zip(freqs, amps):
+            data[trial, ch, :] += amp * np.sin(2 * np.pi * freq * times)
+            # data[trial, ch, :] += amp*np.sin(2*np.pi*freq*times + np.random.rand()*2*np.pi)
+
+plot_EEG(times, data, ch_idx=9)
+
+# Q: What can you change in the code above to make the EEG
+#    activity non-phase-locked over trials?
+# A: Add a random number to the phase of each sine wave
+#
+# Q: Which of the plots look different for phase-locked vs. non-phase-locked?
+#    (Hint: plot them in different figures to facilitate comparison.)
+#    Are you surprised about the differences?
+# A: The ERP and TF plots look different. The PSD plot looks the same.
 
 # %%
-# Select dipole location (more-or-less random)
-dip_loc = 108
+## 4) Nonstationary sine waves
 
-# Plot brain dipoles
-fig = plt.figure()
-ax1 = plt.subplot(121, projection='3d')
-ax2 = plt.subplot(122)
-# Scatter plot the channel positions
-ax1.scatter(grid_loc[:, 0], grid_loc[:, 1], grid_loc[:, 2], marker='o', s=8, alpha=0.3)
-ax1.scatter(
-    grid_loc[dip_loc, 0],
-    grid_loc[dip_loc, 1],
-    grid_loc[dip_loc, 2],
-    marker='o',
-    s=50,
-    color='red',
-)
-
-ax1.set_title('Brain Dipole Locations')
-ax1.set_xlabel('x')
-ax1.set_ylabel('y')
-ax1.set_zlabel('z')
-
-# Each dipole can be projected onto the scalp using the forward model.
-# The code below shows this projection from one dipole.
-im, _ = plot_topomap(
-    -gain[:, 0, dip_loc],
-    info,
-    names=np.arange(n_chs) + 1,
-    axes=ax2,
-    cmap=cmap,
-    sphere='eeglab',
-)
-plt.colorbar(im)
-
-ax2.set_title('Signal Dipole Projection')
-
-plt.show()
-
-# %% Add signal to one dipole and project it to scalp
-
-# Initialize all dipole data
-dipole_data = np.zeros((gain.shape[2], n_samples))
-
-# Add signal to one dipole
-dipole_data[dip_loc, :] = np.sin(2 * np.pi * 10 * times)
-
-# Now project dipole data to scalp electrodes
-data = gain[:, 0, :] @ dipole_data
-
-# Plot the data
-plot_EEG(times, data, ch_idx=30)
-
-# %% 1) Pure sine wave with amplitude explorations
-
-# Dipole amplitude magnitude
-amp = 1
-
-# Initialize all dipole data
-data = np.zeros((n_trials, n_chs, n_samples))
-dipole_data = np.zeros((gain.shape[2], n_samples))
-dipole_data[dip_loc, :] = amp * np.sin(2 * np.pi * 10 * times)
-
-# Compute one trial
-signal = gain[:, 0, :] @ dipole_data
-
-# Repeat that for N trials
-for i in range(n_trials):
-    data[i, :, :] = signal
-
-# Plot the data
-plot_EEG(times, data, ch_idx=30)
-
-# Q: What is the smallest amplitude of dipole signal that still
-#    elicits a scalp-level response?
-# A:
-
-# %% 2) Sine wave with noise
-
-# Standard deviation of the noise
-noise_std = 5
-
-# Dipole amplitude magnitude
-amp = 1
-
-# Initialize all dipole data
+# Initialize data array
 data = np.zeros((n_trials, n_chs, n_samples))
 
-for i in range(n_trials):
-    dipole_data = np.random.randn(gain.shape[2], n_samples) * noise_std
-    dipole_data[dip_loc, :] = amp * np.sin(2 * np.pi * 10 * times)
+# Loop over channels and trials
+for ch in range(n_chs):
+    for trial in range(n_trials):
+        for freq, amp in zip(freqs, amps):
+            # Create instantaneous frequencies via interpolated random numbers
+            freq_mod = 20 * np.interp(
+                np.linspace(1, 10, n_samples),
+                np.linspace(1, 10, 10),
+                np.random.rand(10),
+            )
+            signal = np.sin(2 * np.pi * ((times + np.cumsum(freq_mod)) / srate))
+            data[trial, ch, :] += signal
 
-    signal = gain[:, 0, :] @ dipole_data
-    data[i, :, :] = signal
-
-# Plot the data
-plot_EEG(times, data, ch_idx=30)
-
-# Q: Given amplitude=1 of dipole signal, what standard deviation of noise
-#    at all other dipoles overpowers the signal (qualitatively)?
-# A:
-
-# %% 3) Non-oscillatory transient in one dipole, noise in all other dipoles
-# Define the parameters
-peak_time = 1  # in seconds
-width = 0.12
-amp = 70
-noise_std = 1
-
-# Create Gaussian taper
-gauss = amp * np.exp(-((times - peak_time) ** 2) / (2 * width**2))
-
-# Initialize all dipole data
-data = np.zeros((n_trials, n_chs, n_samples))
-
-for i in range(n_trials):
-    dipole_data = np.random.randn(gain.shape[2], n_samples) * noise_std
-    # dipole_data[dip_loc, :] = amp * np.sin(2 * np.pi * 10 * times) * gauss
-    dipole_data[dip_loc, :] = gauss
-
-    signal = gain[:, 0, :] @ dipole_data
-    data[i, :, :] = signal
-
-# Plot the data
-plot_EEG(times, data, ch_idx=30)
-
-# %% 4) Non-stationary oscillation in one dipole, transient oscillation in another dipole, noise in all dipoles
-# First pick two dipoles
-dip_loc1 = 108
-dip_loc2 = 509
-
-# Plot brain dipoles
-fig = plt.figure()
-ax1 = plt.subplot(131, projection='3d')
-ax2 = plt.subplot(132)
-ax3 = plt.subplot(133)
-# Scatter plot the channel positions
-ax1.scatter(grid_loc[:, 0], grid_loc[:, 1], grid_loc[:, 2], marker='o', s=8, alpha=0.3)
-ax1.scatter(
-    grid_loc[dip_loc1, 0],
-    grid_loc[dip_loc1, 1],
-    grid_loc[dip_loc1, 2],
-    marker='o',
-    s=50,
-    color='red',
-)
-ax1.scatter(
-    grid_loc[dip_loc2, 0],
-    grid_loc[dip_loc2, 1],
-    grid_loc[dip_loc2, 2],
-    marker='o',
-    s=50,
-    color='orange',
-)
-
-ax1.set_title('Brain Dipole Locations')
-ax1.set_xlabel('x')
-ax1.set_ylabel('y')
-ax1.set_zlabel('z')
-
-# Each dipole can be projected onto the scalp using the forward model.
-# The code below shows this projection from one dipole.
-im, _ = plot_topomap(
-    -gain[:, 0, dip_loc1],
-    info,
-    names=np.arange(n_chs) + 1,
-    axes=ax2,
-    cmap=cmap,
-    sphere='eeglab',
-)
-plt.colorbar(im)
-im, _ = plot_topomap(
-    -gain[:, 0, dip_loc2],
-    info,
-    names=np.arange(n_chs) + 1,
-    axes=ax3,
-    cmap=cmap,
-    sphere='eeglab',
-)
-plt.colorbar(im)
-
-ax2.set_title('Signal Dipole Projection')
-ax3.set_title('Signal Dipole Projection')
-
-plt.show()
+plot_EEG(times, data, ch_idx=9)
 
 # %%
-# Define the parameters
-peak_time = 1  # in seconds
+## 5) Transient oscillations with Gaussian
+
+peaktime = 1  # second (where the peak occurs)
 width = 0.12
-amp = 1
-sine_freq = 7
-noise_std = 0.2
-k = 10
+gauss = np.exp(-((times - peaktime) ** 2) / (2 * width**2))
 
-# Create Gaussian taper
-gauss = amp * np.exp(-((times - peak_time) ** 2) / (2 * width**2))
+sine_freq, amp = 7, 1
 
-# Initialize all dipole data
+# Initialize data array
 data = np.zeros((n_trials, n_chs, n_samples))
 
-# Repeat that for N trials
-for i in range(n_trials):
-    dipole_data = np.random.randn(gain.shape[2], n_samples) * noise_std
+# Loop over channels and trials
+for ch in range(n_chs):
+    for trial in range(n_trials):
+        data[trial, ch, :] = amp * np.cos(2 * np.pi * sine_freq * times) * gauss
 
-    # Non-stationary oscillation in dipole1 (range of 5-10 Hz)
-    xi = np.arange(k)
-    yi = np.random.rand(k)
-    x = np.linspace(0, k - 1, n_samples)
-    y = np.interp(x, xi, yi)
-    freq_mult = 5 + 5 * y
+plot_EEG(times, data, ch_idx=9)
 
-    dipole_data[dip_loc1, :] = amp * np.sin(
-        2 * np.pi * (times + np.cumsum(freq_mult)) / srate
-    )
+# %%
+## 6) Repeat 3) with white noise
 
-    # Transient oscillation in dipole2
-    dipole_data[dip_loc2, :] = amp * np.sin(2 * np.pi * sine_freq * times) * gauss
+# Noise amplitude
+noise_amp = 5
 
-    # Compute one trial
-    signal = gain[:, 0, :] @ dipole_data
-    data[i, :, :] = signal
+# List of frequencies and corresponding amplitudes
+freqs = [3, 5, 16]
+amps = [2, 4, 5]
 
-# Plot the data
-plot_EEG(times, data, ch_idx=55)
-plot_EEG(times, data, ch_idx=30)
+# Initialize data array
+data = np.zeros((n_trials, n_chs, n_samples))
+
+# Loop over channels and trials
+for ch in range(n_chs):
+    for trial in range(n_trials):
+        for freq, amp in zip(freqs, amps):
+            signal = amp * np.sin(2 * np.pi * freq * times)
+            noise = noise_amp * np.random.randn(*signal.shape)
+            data[trial, ch, :] += signal + noise
+
+plot_EEG(times, data, ch_idx=9)
+
+# %%
+## 7) Transient oscillations with 1/f noise
+
+# Noise amplitude
+noise_amp = 0.3
+signal_amp = 1
+
+peaktime = 1  # second (where the peak occurs)
+width = 0.12
+gauss = np.exp(-((times - peaktime) ** 2) / (2 * width**2))
+
+# Initialize data array
+data = np.zeros((n_trials, n_chs, n_samples))
+
+# Parameters for the pink noise
+exp_decay = 50
+half_pnts = int(np.floor(n_samples / 2) - 1)
+
+# Loop over channels and trials
+for ch in range(n_chs):
+    for trial in range(n_trials):
+        # Create pink noise
+        signal = np.cos(2 * np.pi * sine_freq * times + 2 * np.pi * np.random.rand())
+
+        # Pink noise amplitude spectrum
+        amp_spec = np.random.rand(half_pnts) * np.exp(-np.arange(half_pnts) / exp_decay)
+        amp_spec = np.concatenate(([amp_spec[0]], amp_spec, [0], amp_spec[::-1]))
+
+        # Fourier coefficients
+        fc = amp_spec * np.exp(1j * 2 * np.pi * np.random.rand(*amp_spec.shape))
+
+        # Inverse Fourier transform to create the noise
+        pink_noise = np.fft.ifft(fc).real * n_samples
+
+        data[trial, ch, :] = signal_amp * signal * gauss + noise_amp * pink_noise
+
+plot_EEG(times, data, ch_idx=9)
 
 # %%
