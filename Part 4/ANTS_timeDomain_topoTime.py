@@ -117,17 +117,23 @@ t_idx = t_idx.astype(int)
 
 
 # %%
-# Compute the average reference
-car_data = data - np.mean(data, axis=0)
-
-# Topoplot time series at exact time point
-plot_topomaps(data, t_idx, title='Original Data')
-plot_topomaps(car_data, t_idx, title='CAR Data')
-
 # Window size (half of window)
 t_win = 10  # in ms
 
+# Topoplot time series at exact time point
+plot_topomaps(data, t_idx, title='Raw (Single Time Points)')
+plot_topomaps(
+    data, t_idx, title='Raw (Averaged Time Points)', average=True, t_win=t_win
+)
+
+# %%
+# Compute the average reference
+car_data = data - np.mean(data, axis=0)
+
 # Topoplot time series at average around time point
-plot_topomaps(data, t_idx, title='Averaged Windows', average=True, t_win=t_win)
+plot_topomaps(car_data, t_idx, title='CAR (Single Time Points)')
+plot_topomaps(
+    car_data, t_idx, title='CAR (Averaged Time Points)', average=True, t_win=t_win
+)
 
 # %%
