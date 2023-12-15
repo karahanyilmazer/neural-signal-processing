@@ -12,11 +12,6 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from mne import create_info
-from mne.channels import make_standard_montage
-from mne.viz import plot_topomap
-from scipy.io import loadmat
 
 # Set figure settings
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
