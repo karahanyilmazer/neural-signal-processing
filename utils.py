@@ -4,9 +4,14 @@ from matplotlib.colors import LinearSegmentedColormap
 from yaml import safe_load
 
 
-def set_style():
+def set_style(notebook=True, grid=False):
     # Set the style to science
-    plt.style.use(['science', 'notebook', 'no-latex'])
+    args = ['science', 'no-latex']
+    if grid:
+        args.append('grid')
+    if notebook:
+        args.append('notebook')
+    plt.style.use(args)
 
 
 def set_fig_dpi():
