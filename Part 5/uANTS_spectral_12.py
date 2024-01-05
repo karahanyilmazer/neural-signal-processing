@@ -24,10 +24,6 @@ set_fig_dpi(), set_style(notebook=True)
 srates = [100, 100, 1000]
 time_dur = [1, 10, 1]
 
-
-import matplotlib.pyplot as plt
-import numpy as np
-
 # Define parameters
 freq = 5  # Frequency in Hz
 colors = ['k', 'm', 'b']  # Colors
