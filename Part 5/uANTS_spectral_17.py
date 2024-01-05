@@ -35,9 +35,6 @@ chan = 6  # Python uses 0-based indexing
 # Create a Hann window
 hannw = 0.5 - np.cos(2 * np.pi * np.linspace(0, 1, csd.shape[1])) / 2
 
-print(hannw.shape)
-print(round(csd.shape[1] / 10))
-
 # Welch's method using scipy's welch
 hz, pxx = welch(
     csd[chan, :, :],
@@ -53,7 +50,6 @@ plt.subplot(2, 1, 1)
 plt.plot(time, csd[chan, :, :].mean(axis=1))
 plt.xlabel('Time (s)')
 plt.ylabel('Voltage (µV)')
-
 
 plt.subplot(2, 1, 2)
 plt.plot(hz, pxx.mean(axis=1))
