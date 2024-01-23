@@ -10,12 +10,14 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.ndimage import convolve1d
 
 # Set figure settings
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils import set_fig_dpi, set_style
 
 set_fig_dpi(), set_style()
+
 # %%
 # This is the same signal and kernel as used before, but we will implement
 # convolution differently.
@@ -42,13 +44,14 @@ signal = np.concatenate(
     ]
 )
 
-# Plot
+# %% Plot
 plt.figure()
 plt.plot(kernel + 1, 'b', label='Kernel')
 plt.plot(signal, 'k', label='Signal')
 
-# Use numpy convolve function for now
-plt.plot(np.convolve(signal, kernel, 'same'), 'r', label='Convolved')
+# Use the scipy convolve1d function as numpy convolve shifts the results by one sample
+# plt.plot(np.convolve(signal, kernel, 'same'), 'r', label='Convolved')
+plt.plot(convolve1d(signal, kernel), 'r', label='Convolved')
 
 plt.xlim([0, len(signal)])
 
@@ -71,8 +74,9 @@ conv_resX = dataX * kernX
 conv_res = np.fft.ifft(conv_resX).real
 
 # Step 5: Cut off "wings"
-conv_res = conv_res[half_k - 1 : -half_k]
+conv_res = conv_res[half_k : -half_k + 1]
 
+# plt.plot(convolve(signal, kernel, 'same'))
 # And plot for confirmation!
 plt.plot(conv_res, 'go', label='Spectral Multiplication')
 
