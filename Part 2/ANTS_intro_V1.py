@@ -21,8 +21,6 @@ mat = loadmat(os.path.join('..', 'data', 'v1_laminar.mat'))
 times = mat['timevec'][0]
 # Get the epoched data of shape (channels x samples x trials)
 epoched_data = mat['csd']
-# Get the sampling frequency
-sfreq = mat['srate'][0][0]
 
 # Get the number of samples
 n_samples = epoched_data.shape[1]
